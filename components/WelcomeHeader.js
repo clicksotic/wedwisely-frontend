@@ -1,81 +1,32 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
+import tw from 'twrnc';
 
 const WelcomeHeader = ({ title, subtitle, navigation }) => {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+    <View style={tw`flex-1 justify-center px-5 bg-white`}>
+      <View style={tw`items-center py-5 bg-gray-100 rounded-lg mb-10`}>
+        <Text style={tw`text-2xl font-bold text-gray-800 mb-2`}>{title}</Text>
+        <Text style={tw`text-base text-gray-600 text-center`}>{subtitle}</Text>
       </View>
       
-      <View style={styles.buttonContainer}>
+      <View style={tw`space-y-4`}>
         <TouchableOpacity 
-          style={styles.button} 
+          style={tw`bg-black h-13 rounded justify-center items-center`}
           onPress={() => navigation.navigate('Register')}
         >
-          <Text style={styles.buttonText}>REGISTER</Text>
+          <Text style={tw`text-white text-base font-bold tracking-wider`}>REGISTER</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.button, styles.loginButton]} 
+          style={tw`bg-white h-13 rounded justify-center items-center border border-black`}
           onPress={() => navigation.navigate('Login')}
         >
-          <Text style={[styles.buttonText, styles.loginButtonText]}>LOG IN</Text>
+          <Text style={tw`text-black text-base font-bold tracking-wider`}>LOG IN</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  header: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 10,
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    gap: 16,
-  },
-  button: {
-    backgroundColor: '#000',
-    height: 52,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  loginButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#000',
-  },
-  loginButtonText: {
-    color: '#000',
-  },
-});
 
 export default WelcomeHeader;
