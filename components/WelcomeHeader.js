@@ -1,32 +1,90 @@
 import React from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground } from 'react-native';
+
 import tw from 'twrnc';
 
-const WelcomeHeader = ({ title, subtitle, navigation }) => {
+
+const WelcomeHeader = ({ navigation }) => {
   return (
-    <View style={tw`flex-1 justify-center px-5 bg-white`}>
-      <View style={tw`items-center py-5 bg-gray-100 rounded-lg mb-10`}>
-        <Text style={tw`text-2xl font-bold text-gray-800 mb-2`}>{title}</Text>
-        <Text style={tw`text-base text-gray-600 text-center`}>{subtitle}</Text>
+
+    <ImageBackground
+      source={require('../assets/wedding-bg.png')} // replace with your bg later
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.subtitle}>Let’s Get</Text>
+          <Text style={styles.title}>Married</Text>
+        </View>
+
+        {/* Buttons */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.buttonText}>Sign In</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.buttonText}>Register</Text>
+          </TouchableOpacity>
+        </View>
+
       </View>
-      
-      <View style={tw`space-y-4`}>
-        <TouchableOpacity 
-          style={tw`bg-black h-13 rounded justify-center items-center`}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={tw`text-white text-base font-bold tracking-wider`}>REGISTER</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={tw`bg-white h-13 rounded justify-center items-center border border-black`}
-          onPress={() => navigation.navigate('Login')}
-        >
-          <Text style={tw`text-black text-base font-bold tracking-wider`}>LOG IN</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ImageBackground>
   );
 };
 
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 24,
+    paddingBottom: 50,
+    backgroundColor: 'rgba(0,0,0,0.2)', // optional dim overlay
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#fff',
+    marginBottom: 6,
+  },
+  title: {
+    fontSize: 42,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  buttonContainer: {
+    gap: 16,
+  },
+  button: {
+    backgroundColor: '#801D11', // maroon shade
+    height: 52,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '500',
+  },
+});
+
 export default WelcomeHeader;
+
