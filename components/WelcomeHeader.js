@@ -1,8 +1,13 @@
 import React from 'react';
+
 import { StyleSheet, Text, View, TouchableOpacity, ImageBackground } from 'react-native';
+
+import tw from 'twrnc';
+
 
 const WelcomeHeader = ({ navigation }) => {
   return (
+
     <ImageBackground
       source={require('../assets/wedding-bg.png')} // replace with your bg later
       style={styles.container}
@@ -31,10 +36,12 @@ const WelcomeHeader = ({ navigation }) => {
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
         </View>
+
       </View>
     </ImageBackground>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -80,3 +87,4 @@ const styles = StyleSheet.create({
 });
 
 export default WelcomeHeader;
+
