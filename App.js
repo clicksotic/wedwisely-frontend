@@ -1,41 +1,37 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import WelcomeHeader from './components/WelcomeHeader';
+import RegisterScreen from './screens/RegisterScreen';
+import LoginScreen from './screens/LoginScreen';
 
-export default function App() {
+const Stack = createStackNavigator();
+
+function HomeScreen({ navigation }) {
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <WelcomeHeader 
-        title="Welcome to WedWisely" 
-        subtitle="Your Wedding Planning Companion"
-      />
-      <View style={styles.content}>
-        <Text style={styles.description}>
-          Start planning your perfect wedding with our comprehensive tools and features.
-        </Text>
-      </View>
-    </View>
+    <WelcomeHeader 
+      title="Welcome to WedWisely" 
+      subtitle="Your Wedding Planning Companion"
+      navigation={navigation}
+    />
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 50,
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  description: {
-    fontSize: 18,
-    color: '#555',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-});
+export default function App() {
+  return (
+    <NavigationContainer>
+      <StatusBar style="auto" />
+      <Stack.Navigator 
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
