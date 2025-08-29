@@ -21,7 +21,7 @@ const WelcomeHeader = ({ title, subtitle, navigation }) => {
           style={[styles.button, styles.loginButton]} 
           onPress={() => navigation.navigate('Login')}
         >
-          <Text style={[styles.buttonText, styles.loginButtonText]}>LOG IN A</Text>
+          <Text style={[styles.buttonText, styles.loginButtonText]}>LOG IN</Text>
         </TouchableOpacity>
       </View>
     </View>
