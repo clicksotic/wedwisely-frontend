@@ -53,7 +53,6 @@ const LoginScreen = ({ navigation }) => {
       [field]: value
     }));
 
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -63,7 +62,6 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = () => {
-    // Validate all fields
     const newErrors = {};
     Object.keys(formData).forEach(field => {
       const error = validateField(field, formData[field]);
@@ -74,13 +72,23 @@ const LoginScreen = ({ navigation }) => {
 
     setErrors(newErrors);
 
-    // If there are errors, don't proceed
     if (Object.keys(newErrors).length > 0) {
       return;
     }
 
-    // Handle login logic here
-    console.log('Login:', formData);
+    // 🔹 Dummy hardcoded credentials
+    const dummyEmail = 'demo@wedwisely.com';
+    const dummyPassword = '123456';
+
+    if (
+      formData.email.trim().toLowerCase() === dummyEmail &&
+      formData.password === dummyPassword
+    ) {
+      console.log('Login successful!');
+      navigation.replace('MainTabs'); // navigate to Home + navbar
+    } else {
+      setErrors({ general: 'Invalid email or password' });
+    }
   };
 
   if (!fontsLoaded) {
@@ -142,7 +150,11 @@ const LoginScreen = ({ navigation }) => {
         {/* Summary Error Message */}
         {Object.keys(errors).length > 0 && (
           <View style={styles.summaryErrorContainer}>
-            <Text style={styles.summaryErrorText}>⚠️ Fix errors above</Text>
+            {errors.general ? (
+              <Text style={styles.summaryErrorText}>{errors.general}</Text>
+            ) : (
+              <Text style={styles.summaryErrorText}>⚠️ Fix errors above</Text>
+            )}
           </View>
         )}
 
@@ -156,93 +168,87 @@ const LoginScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-  },
-  backButton: {
-    marginBottom: 30,
-  },
-  backArrow: {
-    fontSize: 24,
-    color: '#000',
-    fontWeight: '600',
-    fontFamily: 'Roboto',
-  },
-  title: {
-    fontSize: 32,
-    color: '#000',
-    marginBottom: 40,
-    textAlign: 'left',
-    fontFamily: 'Comfortaa-Regular',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    color: '#000',
-    marginBottom: 8,
-    fontFamily: 'Roboto',
-    fontWeight: '500',
-  },
-  input: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 4,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#000',
-    backgroundColor: '#fff',
-    fontFamily: 'Roboto',
-  },
-  inputError: {
-    borderColor: '#ff6b6b',
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#ff6b6b',
-    marginTop: 4,
-    marginLeft: 4,
-    fontFamily: 'Roboto',
-  },
-  summaryErrorContainer: {
-    marginBottom: 20,
-    padding: 6,
-    backgroundColor: 'transparent',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ff6b6b',
-  },
-  summaryErrorText: {
-    fontSize: 11,
-    color: '#ff6b6b',
-    textAlign: 'center',
-    fontFamily: 'Roboto',
-  },
-  button: {
-    backgroundColor: '#000',
-    height: 52,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    fontFamily: 'Roboto',
-  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff' },
+
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff', 
+    paddingHorizontal: 20, 
+    paddingTop: 60 },
+
+  backButton: { marginBottom: 30 },
+
+  backArrow: { 
+    fontSize: 24, 
+    color: '#000', 
+    fontWeight: '600', 
+    fontFamily: 'Roboto' },
+
+  title: { 
+    fontSize: 32, 
+    color: '#000', 
+    marginBottom: 40, 
+    textAlign: 'left', 
+    fontFamily: 'Comfortaa-Regular' },
+
+  inputContainer: { marginBottom: 20 },
+
+  label: { 
+    fontSize: 16, 
+    color: '#000', 
+    marginBottom: 8, 
+    fontFamily: 'Roboto', 
+    fontWeight: '500' },
+
+  input: { 
+    height: 52, 
+    borderWidth: 1, 
+    borderColor: '#000', 
+    borderRadius: 4, 
+    paddingHorizontal: 16, 
+    fontSize: 16, 
+    color: '#000', 
+    backgroundColor: '#fff', 
+    fontFamily: 'Roboto' },
+  inputError: { borderColor: '#ff6b6b' },
+
+  errorText: { 
+    fontSize: 12, 
+    color: '#ff6b6b', 
+    marginTop: 4, 
+    marginLeft: 4, 
+    fontFamily: 'Roboto' },
+
+  summaryErrorContainer: { 
+    marginBottom: 20, 
+    padding: 6, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#ff6b6b' },
+
+  summaryErrorText: { 
+    fontSize: 11, 
+    color: '#ff6b6b', 
+    textAlign: 'center', 
+    fontFamily: 'Roboto' },
+
+  button: { 
+    backgroundColor: '#000', 
+    height: 52, 
+    borderRadius: 4, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginTop: 40 },
+
+  buttonText: { 
+    color: '#fff', 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    letterSpacing: 1, 
+    fontFamily: 'Roboto' },
 });
 
-export default LoginScreen; 
+export default LoginScreen;
