@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "WedWisely",
+    "slug": "wedwisely-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/appicon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/appicon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8B4513"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/appicon.png",
+        "backgroundColor": "#8B4513"
+      }
+    },
+    "web": {
+      "favicon": "./assets/appicon.png"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+
+  }
+}
