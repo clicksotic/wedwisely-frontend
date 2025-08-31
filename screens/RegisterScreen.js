@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
   ScrollView,
   Alert,
@@ -14,6 +13,9 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as Font from 'expo-font';
+import { MaterialIcons } from '@expo/vector-icons';
+import tw from 'twrnc';
+import authService from '../services/authService';
 
 const RegisterScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -33,6 +35,8 @@ const RegisterScreen = ({ navigation }) => {
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isCountryPickerVisible, setCountryPickerVisible] = useState(false);
   const [isCityPickerVisible, setCityPickerVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const scrollViewRef = useRef(null);
 
   // Countries and cities data (alphabetically ordered)
@@ -261,7 +265,7 @@ const RegisterScreen = ({ navigation }) => {
 
   // Removed automatic scrolling to prevent page jumping when typing
 
-  const handleNext = () => {
+  const handleNext = async () => {
     // Validate all fields
     const newErrors = {};
     Object.keys(formData).forEach(field => {
@@ -278,50 +282,104 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    // Handle registration logic here
-    console.log('Register:', formData);
+    try {
+      // Show loading state
+      setErrors({ general: 'Creating account...' });
+      
+      // Prepare user data for backend
+      const userData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        age: parseInt(formData.age),
+        gender: formData.gender,
+        dateOfBirth: formData.dob,
+        country: formData.country,
+        city: formData.city,
+        email: formData.email.trim(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      };
+
+      // Call backend registration API
+      const response = await authService.register(userData);
+
+      if (response.success) {
+        console.log('✅ Registration successful!', response.data);
+        setErrors({}); // Clear any errors
+        
+        // Show success message
+        Alert.alert(
+          'Success! 🎉',
+          'Your account has been created successfully!',
+          [
+            {
+              text: 'Continue',
+              onPress: () => navigation.replace('MainTabs') // Navigate to main app
+            }
+          ]
+        );
+      } else {
+        setErrors({ general: response.message || 'Registration failed' });
+      }
+    } catch (error) {
+      console.error('❌ Registration error:', error);
+      setErrors({ general: 'Network error. Please try again.' });
+    }
   };
 
   if (!fontsLoaded) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={tw`flex-1 justify-center items-center bg-white`}>
         <Text>Loading fonts...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={tw`flex-1 bg-white`}>
       <KeyboardAvoidingView 
-        style={styles.keyboardAvoidingView}
+        style={tw`flex-1`}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        enabled={true}
       >
         <ScrollView 
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false} 
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={tw`flex-grow pb-25`}
+          bounces={true}
+          alwaysBounceVertical={false}
+          decelerationRate="normal"
+          scrollEventThrottle={16}
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          overScrollMode="always"
+          removeClippedSubviews={false}
+          keyboardDismissMode="on-drag"
         >
           {/* Top margin */}
-          <View style={styles.topMargin} />
+          <View style={tw`h-5 min-h-10`} />
 
           {/* Back Navigation */}
           <TouchableOpacity 
-            style={styles.backButton}
+            style={tw`mb-8 ml-5 mt-5`}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backArrow}>←</Text>
+            <Text style={tw`text-2xl text-black font-semibold font-roboto`}>←</Text>
           </TouchableOpacity>
 
           {/* Title */}
-          <Text style={styles.title}>Register</Text>
+          <Text style={[tw`text-3xl text-black mb-8 text-left ml-5`, { fontFamily: fontsLoaded ? 'Comfortaa-Regular' : 'System' }]}>Register</Text>
 
           {/* First Name */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>First Name</Text>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>First Name</Text>
             <TextInput
-              style={[styles.input, errors.firstName ? styles.inputError : null]}
+              style={[
+                tw`h-13 border rounded px-4 text-base text-black bg-white font-roboto`,
+                errors.firstName ? tw`border-error` : tw`border-black`
+              ]}
               placeholder="Enter first name"
               placeholderTextColor="#666"
               value={formData.firstName}
@@ -330,14 +388,19 @@ const RegisterScreen = ({ navigation }) => {
               autoCorrect={false}
               returnKeyType="next"
             />
-            {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
+            {errors.firstName && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.firstName}</Text>
+            )}
           </View>
 
           {/* Last Name */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Last Name</Text>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Last Name</Text>
             <TextInput
-              style={[styles.input, errors.lastName ? styles.inputError : null]}
+              style={[
+                tw`h-13 border rounded px-4 text-base text-black bg-white font-roboto`,
+                errors.lastName ? tw`border-error` : tw`border-black`
+              ]}
               placeholder="Enter last name"
               placeholderTextColor="#666"
               value={formData.lastName}
@@ -346,14 +409,19 @@ const RegisterScreen = ({ navigation }) => {
               autoCorrect={false}
               returnKeyType="next"
             />
-            {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
+            {errors.lastName && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.lastName}</Text>
+            )}
           </View>
 
           {/* Age */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Age</Text>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Age</Text>
             <TextInput
-              style={[styles.input, errors.age ? styles.inputError : null]}
+              style={[
+                tw`h-13 border rounded px-4 text-base text-black bg-white font-roboto`,
+                errors.age ? tw`border-error` : tw`border-black`
+              ]}
               placeholder="Enter age"
               placeholderTextColor="#666"
               value={formData.age}
@@ -362,17 +430,22 @@ const RegisterScreen = ({ navigation }) => {
               maxLength={3}
               returnKeyType="next"
             />
-            {errors.age ? <Text style={styles.errorText}>{errors.age}</Text> : null}
+            {errors.age && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.age}</Text>
+            )}
           </View>
 
           {/* Gender */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Gender</Text>
-            <View style={[styles.pickerContainer, errors.gender ? styles.inputError : null]}>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Gender</Text>
+            <View style={[
+              tw`h-13 border rounded bg-white justify-center`,
+              errors.gender ? tw`border-error` : tw`border-black`
+            ]}>
               <Picker
                 selectedValue={formData.gender}
                 onValueChange={(value) => handleInputChange('gender', value)}
-                style={styles.picker}
+                style={tw`h-12.5`}
               >
                 <Picker.Item label="Select gender" value="" />
                 <Picker.Item label="Male" value="male" />
@@ -381,57 +454,78 @@ const RegisterScreen = ({ navigation }) => {
                 <Picker.Item label="Prefer not to say" value="prefer_not_to_say" />
               </Picker>
             </View>
-            {errors.gender ? <Text style={styles.errorText}>{errors.gender}</Text> : null}
+            {errors.gender && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.gender}</Text>
+            )}
           </View>
 
           {/* Date of Birth */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Date of Birth</Text>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Date of Birth</Text>
             <TouchableOpacity 
-              style={[styles.dateInput, errors.dob ? styles.inputError : null]} 
+              style={[
+                tw`h-13 border rounded px-4 justify-center bg-white`,
+                errors.dob ? tw`border-error` : tw`border-black`
+              ]} 
               onPress={showDatePicker}
             >
-              <Text style={formData.dob ? styles.dateText : styles.datePlaceholder}>
+              <Text style={formData.dob ? tw`text-base text-black font-roboto` : tw`text-base text-gray-500 font-roboto`}>
                 {formData.dob || 'Select date of birth'}
               </Text>
             </TouchableOpacity>
-            {errors.dob ? <Text style={styles.errorText}>{errors.dob}</Text> : null}
+            {errors.dob && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.dob}</Text>
+            )}
           </View>
 
           {/* Country */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Country</Text>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Country</Text>
             <TouchableOpacity 
-              style={[styles.dropdownInput, errors.country ? styles.inputError : null]} 
+              style={[
+                tw`h-13 border rounded px-4 justify-center bg-white`,
+                errors.country ? tw`border-error` : tw`border-black`
+              ]} 
               onPress={showCountryPicker}
             >
-              <Text style={formData.country ? styles.dropdownText : styles.dropdownPlaceholder}>
+              <Text style={formData.country ? tw`text-base text-black font-roboto` : tw`text-base text-gray-500 font-roboto`}>
                 {formData.country || 'Select country'}
               </Text>
             </TouchableOpacity>
-            {errors.country ? <Text style={styles.errorText}>{errors.country}</Text> : null}
+            {errors.country && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.country}</Text>
+            )}
           </View>
 
           {/* City */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>City</Text>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>City</Text>
             <TouchableOpacity 
-              style={[styles.dropdownInput, !formData.country && styles.disabledInput, errors.city ? styles.inputError : null]} 
+              style={[
+                tw`h-13 border rounded px-4 justify-center bg-white`,
+                !formData.country && tw`bg-gray-100 border-gray-300`,
+                errors.city ? tw`border-error` : tw`border-black`
+              ]} 
               onPress={showCityPicker}
               disabled={!formData.country}
             >
-              <Text style={formData.city ? styles.dropdownText : styles.dropdownPlaceholder}>
+              <Text style={formData.city ? tw`text-base text-black font-roboto` : tw`text-base text-gray-500 font-roboto`}>
                 {formData.city || (formData.country ? 'Select city' : 'Select country first')}
               </Text>
             </TouchableOpacity>
-            {errors.city ? <Text style={styles.errorText}>{errors.city}</Text> : null}
+            {errors.city && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.city}</Text>
+            )}
           </View>
 
           {/* Email */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Email</Text>
             <TextInput
-              style={[styles.input, errors.email ? styles.inputError : null]}
+              style={[
+                tw`h-13 border rounded px-4 text-base text-black bg-white font-roboto`,
+                errors.email ? tw`border-error` : tw`border-black`
+              ]}
               placeholder="jane@example.com"
               placeholderTextColor="#666"
               value={formData.email}
@@ -441,53 +535,89 @@ const RegisterScreen = ({ navigation }) => {
               autoCorrect={false}
               returnKeyType="next"
             />
-            {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+            {errors.email && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.email}</Text>
+            )}
           </View>
 
           {/* Password */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={[styles.input, errors.password ? styles.inputError : null]}
-              placeholder="Enter password"
-              placeholderTextColor="#666"
-              value={formData.password}
-              onChangeText={(value) => handleInputChange('password', value)}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="next"
-            />
-            {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Password</Text>
+            <View style={tw`relative`}>
+              <TextInput
+                style={[
+                  tw`h-13 border rounded px-4 pr-12 text-base text-black bg-white font-roboto`,
+                  errors.password ? tw`border-error` : tw`border-black`
+                ]}
+                placeholder="Enter password"
+                placeholderTextColor="#666"
+                value={formData.password}
+                onChangeText={(value) => handleInputChange('password', value)}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+              />
+              <TouchableOpacity
+                style={tw`absolute right-4 top-0 bottom-0 justify-center`}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <MaterialIcons 
+                  name={showPassword ? 'visibility-off' : 'visibility'} 
+                  size={24} 
+                  color="#666" 
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.password}</Text>
+            )}
           </View>
 
           {/* Confirm Password */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-              style={[styles.input, errors.confirmPassword ? styles.inputError : null]}
-              placeholder="Confirm password"
-              placeholderTextColor="#666"
-              value={formData.confirmPassword}
-              onChangeText={(value) => handleInputChange('confirmPassword', value)}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="done"
-            />
-            {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Confirm Password</Text>
+            <View style={tw`relative`}>
+              <TextInput
+                style={[
+                  tw`h-13 border rounded px-4 pr-12 text-base text-black bg-white font-roboto`,
+                  errors.confirmPassword ? tw`border-error` : tw`border-black`
+                ]}
+                placeholder="Confirm password"
+                placeholderTextColor="#666"
+                value={formData.confirmPassword}
+                onChangeText={(value) => handleInputChange('confirmPassword', value)}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+              />
+              <TouchableOpacity
+                style={tw`absolute right-4 top-0 bottom-0 justify-center`}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <MaterialIcons 
+                  name={showConfirmPassword ? 'visibility-off' : 'visibility'} 
+                  size={24} 
+                  color="#666" 
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.confirmPassword && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.confirmPassword}</Text>
+            )}
           </View>
 
           {/* Summary Error Message */}
-          {Object.keys(errors).length > 0 && (
-            <View style={styles.summaryErrorContainer}>
-              <Text style={styles.summaryErrorText}>⚠️ Fix errors above</Text>
+          {Object.keys(errors).filter(key => errors[key]).length > 0 && (
+            <View style={tw`mx-5 mb-5 p-3 bg-red-50 border border-error rounded-lg`}>
+              <Text style={tw`text-sm text-error text-center font-roboto`}>⚠️ Please fix the errors above</Text>
             </View>
           )}
 
           {/* Next Button */}
-          <TouchableOpacity style={styles.button} onPress={handleNext}>
-            <Text style={styles.buttonText}>REGISTER</Text>
+          <TouchableOpacity style={tw`bg-black h-13 rounded justify-center items-center mt-5 mb-10 mx-5`} onPress={handleNext}>
+            <Text style={tw`text-white text-base font-bold tracking-wider font-roboto`}>REGISTER</Text>
           </TouchableOpacity>
         </ScrollView>
 
@@ -503,25 +633,25 @@ const RegisterScreen = ({ navigation }) => {
 
         {/* Country Picker Modal */}
         {isCountryPickerVisible && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Select Country</Text>
-                <TouchableOpacity onPress={hideCountryPicker} style={styles.closeButton}>
-                  <Text style={styles.closeButtonText}>✕</Text>
+          <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center z-50`}>
+            <View style={tw`bg-white rounded-lg w-90 max-h-80 shadow-lg`}>
+              <View style={tw`flex-row justify-between items-center p-5 border-b border-gray-200`}>
+                <Text style={tw`text-lg font-bold text-black font-roboto`}>Select Country</Text>
+                <TouchableOpacity onPress={hideCountryPicker} style={tw`p-1`}>
+                  <Text style={tw`text-xl text-gray-500 font-bold`}>✕</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView style={styles.modalScrollView}>
+              <ScrollView style={tw`max-h-100`}>
                 {Object.keys(countriesData).map((country) => (
                   <TouchableOpacity
                     key={country}
-                    style={styles.countryItem}
+                    style={tw`p-4 border-b border-gray-200`}
                     onPress={() => {
                       handleInputChange('country', country);
                       hideCountryPicker();
                     }}
                   >
-                    <Text style={styles.countryItemText}>{country}</Text>
+                    <Text style={tw`text-base text-black font-roboto`}>{country}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -531,25 +661,25 @@ const RegisterScreen = ({ navigation }) => {
 
         {/* City Picker Modal */}
         {isCityPickerVisible && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Select City</Text>
-                <TouchableOpacity onPress={hideCityPicker} style={styles.closeButton}>
-                  <Text style={styles.closeButtonText}>✕</Text>
+          <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center z-50`}>
+            <View style={tw`bg-white rounded-lg w-90 max-h-80 shadow-lg`}>
+              <View style={tw`flex-row justify-between items-center p-5 border-b border-gray-200`}>
+                <Text style={tw`text-lg font-bold text-black font-roboto`}>Select City</Text>
+                <TouchableOpacity onPress={hideCityPicker} style={tw`p-1`}>
+                  <Text style={tw`text-xl text-gray-500 font-bold`}>✕</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView style={styles.modalScrollView}>
+              <ScrollView style={tw`max-h-100`}>
                 {availableCities.map((city) => (
                   <TouchableOpacity
                     key={city}
-                    style={styles.cityItem}
+                    style={tw`p-4 border-b border-gray-200`}
                     onPress={() => {
                       handleInputChange('city', city);
                       hideCityPicker();
                     }}
                   >
-                    <Text style={styles.cityItemText}>{city}</Text>
+                    <Text style={tw`text-base text-black font-roboto`}>{city}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -560,235 +690,5 @@ const RegisterScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 100, // Extra padding to ensure last elements are visible
-  },
-  topMargin: {
-    height: '5%', // 5% top margin as requested
-    minHeight: 40,
-  },
-  backButton: {
-    marginBottom: 30,
-    marginLeft: 20,
-    marginTop: 20,
-  },
-  backArrow: {
-    fontSize: 24,
-    color: '#000',
-    fontWeight: '600',
-    fontFamily: 'Roboto',
-  },
-  title: {
-    fontSize: 32,
-    color: '#000',
-    marginBottom: 30,
-    textAlign: 'left',
-    fontFamily: 'Comfortaa-Regular',
-    marginLeft: 20,
-  },
-  inputContainer: {
-    marginBottom: 20,
-    marginHorizontal: 20,
-  },
-  label: {
-    fontSize: 16,
-    color: '#000',
-    marginBottom: 8,
-    fontFamily: 'Roboto',
-    fontWeight: '500',
-  },
-  input: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 4,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#000',
-    backgroundColor: '#fff',
-    fontFamily: 'Roboto',
-  },
-  inputError: {
-    borderColor: '#ff6b6b',
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#ff6b6b',
-    marginTop: 4,
-    marginLeft: 4,
-    fontFamily: 'Roboto',
-  },
-  dateInput: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 4,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#000',
-    fontFamily: 'Roboto',
-  },
-  datePlaceholder: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Roboto',
-  },
-  dropdownInput: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 4,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: '#000',
-    fontFamily: 'Roboto',
-  },
-  dropdownPlaceholder: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Roboto',
-  },
-  disabledInput: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#ccc',
-  },
-  pickerContainer: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 4,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-  },
-  picker: {
-    height: 50,
-  },
-  summaryErrorContainer: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 6,
-    backgroundColor: 'transparent',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ff6b6b',
-  },
-  summaryErrorText: {
-    fontSize: 11,
-    color: '#ff6b6b',
-    textAlign: 'center',
-    fontFamily: 'Roboto',
-  },
-  button: {
-    backgroundColor: '#000',
-    height: 52,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
-    marginHorizontal: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    fontFamily: 'Roboto',
-  },
-  // Modal styles
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  modalContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    width: '90%',
-    maxHeight: '80%',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    fontFamily: 'Roboto',
-  },
-  closeButton: {
-    padding: 5,
-  },
-  closeButtonText: {
-    fontSize: 20,
-    color: '#666',
-    fontWeight: 'bold',
-  },
-  modalScrollView: {
-    maxHeight: 400,
-  },
-  countryItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  countryItemText: {
-    fontSize: 16,
-    color: '#000',
-    fontFamily: 'Roboto',
-  },
-  cityItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  cityItemText: {
-    fontSize: 16,
-    color: '#000',
-    fontFamily: 'Roboto',
-  },
-});
 
 export default RegisterScreen; 
