@@ -14,6 +14,7 @@ import WelcomeHeader from './components/WelcomeHeader';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 
+
 // Tab pages (create these if you haven’t yet)
 import HomeScreen from './screens/HomeScreen';
 import SearchScreen from './screens/SearchScreen';
@@ -83,6 +84,7 @@ export default function App() {
           {/* Auth */}
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
+
 
           {/* App pages with the bottom navbar */}
           <Stack.Screen name="MainTabs" component={MainTabs} />
