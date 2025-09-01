@@ -13,8 +13,8 @@ class AuthService {
 
       if (response.success) {
         // Save the token if registration includes auto-login
-        if (response.data.token) {
-          await apiService.setAuthToken(response.data.token);
+        if (response.data.tokens && response.data.tokens.accessToken) {
+          await apiService.setAuthToken(response.data.tokens.accessToken);
         }
         
         console.log('✅ User registered successfully');
@@ -44,24 +44,35 @@ class AuthService {
   // User login
   login = async (credentials) => {
     try {
-      console.log('🔐 Logging in user:', credentials.email);
+      console.log('�� Logging in user:', credentials.email);
+      console.log('🔐 Password length:', credentials.password.length);
+      console.log('🔐 Password chars:', credentials.password.split('').map(c => c.charCodeAt(0)));
       
       const response = await apiService.post(API_ENDPOINTS.AUTH.LOGIN, credentials, {
         includeAuth: false // No auth token needed for login
       });
 
-      if (response.success && response.data.token) {
+      console.log('🔐 Full response:', JSON.stringify(response, null, 2));
+
+      // Check for nested data structure: response.data.data.tokens.accessToken
+      const tokens = response.data?.data?.tokens || response.data?.tokens;
+      const accessToken = tokens?.accessToken;
+
+      if (response.success && accessToken) {
         // Save the authentication token
-        await apiService.setAuthToken(response.data.token);
+        await apiService.setAuthToken(accessToken);
         
         console.log('✅ User logged in successfully');
         return {
           success: true,
-          data: response.data,
+          data: response.data.data || response.data,
           message: 'Login successful'
         };
       } else {
         console.error('❌ Login failed:', response.error);
+        console.error('❌ Response data:', response.data);
+        console.error('❌ Tokens found:', !!tokens);
+        console.error('❌ Access token found:', !!accessToken);
         return {
           success: false,
           error: response.error,
@@ -115,26 +126,69 @@ class AuthService {
     try {
       console.log('🚪 Logging out user');
       
-      // Call logout endpoint if your backend has one
       const response = await apiService.post(API_ENDPOINTS.AUTH.LOGOUT);
+
+      // Clear the token regardless of response
+      await apiService.clearAuthToken();
       
-      // Remove token regardless of backend response
-      await apiService.removeAuthToken();
-      
-      console.log('✅ User logged out successfully');
-      return {
-        success: true,
-        message: 'Logout successful'
-      };
+      if (response.success) {
+        console.log('✅ User logged out successfully');
+        return {
+          success: true,
+          message: 'Logout successful'
+        };
+      } else {
+        console.log('⚠ Logout request failed, but token cleared locally');
+        return {
+          success: true,
+          message: 'Logged out locally'
+        };
+      }
     } catch (error) {
       console.error('❌ Logout error:', error);
-      
-      // Still remove token even if backend call fails
-      await apiService.removeAuthToken();
-      
+      // Still clear the token even if request fails
+      await apiService.clearAuthToken();
       return {
         success: true,
-        message: 'Logout successful'
+        message: 'Logged out locally'
+      };
+    }
+  };
+
+  // Refresh authentication token
+  refreshToken = async () => {
+    try {
+      console.log('🔄 Refreshing authentication token');
+      
+      const response = await apiService.post(API_ENDPOINTS.AUTH.REFRESH);
+
+      const tokens = response.data?.data?.tokens || response.data?.tokens;
+      const accessToken = tokens?.accessToken;
+
+      if (response.success && accessToken) {
+        // Save the new token
+        await apiService.setAuthToken(accessToken);
+        
+        console.log('✅ Token refreshed successfully');
+        return {
+          success: true,
+          data: response.data.data || response.data,
+          message: 'Token refreshed'
+        };
+      } else {
+        console.error('❌ Token refresh failed:', response.error);
+        return {
+          success: false,
+          error: response.error,
+          message: response.error || 'Token refresh failed'
+        };
+      }
+    } catch (error) {
+      console.error('❌ Token refresh error:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: 'Token refresh failed'
       };
     }
   };
@@ -149,49 +203,8 @@ class AuthService {
       return false;
     }
   };
-
-  // Refresh authentication token
-  refreshToken = async () => {
-    try {
-      console.log('🔄 Refreshing authentication token');
-      
-      const response = await apiService.post(API_ENDPOINTS.AUTH.REFRESH);
-
-      if (response.success && response.data.token) {
-        await apiService.setAuthToken(response.data.token);
-        console.log('✅ Token refreshed successfully');
-        return {
-          success: true,
-          data: response.data
-        };
-      } else {
-        console.error('❌ Token refresh failed:', response.error);
-        return {
-          success: false,
-          error: response.error
-        };
-      }
-    } catch (error) {
-      console.error('❌ Token refresh error:', error);
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  };
-
-  // Validate token
-  validateToken = async () => {
-    try {
-      const response = await this.getCurrentUser();
-      return response.success;
-    } catch (error) {
-      console.error('❌ Token validation error:', error);
-      return false;
-    }
-  };
 }
 
 // Create and export a single instance
 const authService = new AuthService();
-export default authService; 
+export default authService;
