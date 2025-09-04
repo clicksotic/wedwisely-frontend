@@ -2,7 +2,7 @@
 const API_CONFIG = {
   // Development - manually set your IP here
   development: {
-    baseURL: 'http://192.168.100.13:3000', // Change this to your system IP
+    baseURL: 'http://192.168.18.224:3000', // Change this to your system IP
     timeout: 10000,
   },
   
