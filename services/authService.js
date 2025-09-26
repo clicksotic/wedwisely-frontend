@@ -12,23 +12,27 @@ class AuthService {
       });
 
       if (response.success) {
-        // Save the token if registration includes auto-login
-        if (response.data.tokens && response.data.tokens.accessToken) {
-          await apiService.setAuthToken(response.data.tokens.accessToken);
+        // Save the token if registration includes auto-login (handles data nesting)
+        const tokens = response.data?.data?.tokens || response.data?.tokens;
+        if (tokens?.accessToken) {
+          await apiService.setAuthToken(tokens.accessToken);
         }
         
         console.log('✅ User registered successfully');
         return {
           success: true,
           data: response.data,
+          status: response.status,
           message: 'Registration successful'
         };
       } else {
-        console.error('❌ Registration failed:', response.error);
+        console.error('❌ Registration failed:', response.error, response.data);
         return {
           success: false,
           error: response.error,
-          message: response.error
+          data: response.data,
+          status: response.status,
+          message: response.error || 'Registration failed'
         };
       }
     } catch (error) {

@@ -16,6 +16,7 @@ import * as Font from 'expo-font';
 import { MaterialIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
 import authService from '../services/authService';
+import profileService from '../services/profileService';
 
 const RegisterScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -26,6 +27,8 @@ const RegisterScreen = ({ navigation }) => {
     dob: '',
     country: '',
     city: '',
+    phone: '',
+    pinCode: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -154,16 +157,17 @@ const RegisterScreen = ({ navigation }) => {
       case 'firstName':
         if (!value.trim()) return '* First name is required';
         if (value.trim().length < 2) return '* First name must be at least 2 characters';
-        if (!/^[a-zA-Z\s]+$/.test(value.trim())) return '* First name can only contain letters';
+        if (value.trim().length > 50) return '* First name cannot exceed 50 characters';
         return '';
       case 'lastName':
         if (!value.trim()) return '* Last name is required';
         if (value.trim().length < 2) return '* Last name must be at least 2 characters';
-        if (!/^[a-zA-Z\s]+$/.test(value.trim())) return '* Last name can only contain letters';
+        if (value.trim().length > 50) return '* Last name cannot exceed 50 characters';
         return '';
       case 'age':
         if (!value.trim()) return '* Age is required';
-        if (isNaN(value) || parseInt(value) < 13 || parseInt(value) > 120) return '* Age must be between 13 and 120';
+        if (isNaN(value)) return '* Age must be a number';
+        if (parseInt(value) < 0 || parseInt(value) > 120) return '* Age must be between 0 and 120';
         return '';
       case 'gender':
         if (!value) return '* Please select your gender';
@@ -172,19 +176,31 @@ const RegisterScreen = ({ navigation }) => {
         if (!value) return '* Date of birth is required';
         return '';
       case 'country':
-        if (!value) return '* Please select your country';
+        // Optional on backend
         return '';
       case 'city':
-        if (!value) return '* Please select your city';
+        // Optional on backend
         return '';
       case 'email':
         if (!value.trim()) return '* Email is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return '* Please enter a valid email address';
+        // Match backend regex
+        if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value.trim())) return '* Please enter a valid email';
+        return '';
+      case 'phone':
+        if (!value.trim()) return '* Phone number is required';
+        if (!/^\+?[1-9]\d{1,14}$/.test(value.trim())) return '* Please enter a valid phone number';
+        return '';
+      case 'pinCode':
+        if (!value.trim()) return '* Pin code is required';
+        if (!/^\d{4,10}$/.test(value.trim())) return '* Please enter a valid pin code';
         return '';
       case 'password':
         if (!value) return '* Password is required';
         if (value.length < 8) return '* Password must be at least 8 characters';
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) return '* Password must contain uppercase, lowercase and number';
+        // Match backend rule: at least 1 upper, 1 lower, 1 number, 1 special
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(value)) {
+          return '* Password must include uppercase, lowercase, number and special character';
+        }
         return '';
       case 'confirmPassword':
         if (!value) return '* Please confirm your password';
@@ -285,19 +301,42 @@ const RegisterScreen = ({ navigation }) => {
     try {
       // Show loading state
       setErrors({ general: 'Creating account...' });
-      
+
+      // Helper: convert MM/DD/YYYY to ISO YYYY-MM-DD
+      const toISODate = (mmddyyyy) => {
+        if (!mmddyyyy) return undefined;
+        const [mm, dd, yyyy] = mmddyyyy.split('/');
+        if (!mm || !dd || !yyyy) return undefined;
+        return `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+      };
+
+      // If age not provided but dob is, compute age
+      let computedAge = formData.age ? parseInt(formData.age) : undefined;
+      if (!computedAge && formData.dob) {
+        const d = new Date(toISODate(formData.dob));
+        if (!isNaN(d)) {
+          const diff = Date.now() - d.getTime();
+          const ageDate = new Date(diff);
+          computedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
+        }
+      }
+
       // Prepare user data for backend
       const userData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
-        age: parseInt(formData.age),
-        gender: formData.gender,
-        dateOfBirth: formData.dob,
-        country: formData.country,
-        city: formData.city,
+        // profile-related fields
+        age: computedAge,
+        gender: formData.gender || undefined,
+        dateOfBirth: toISODate(formData.dob) || undefined,
+        phone: formData.phone.trim(),
+        pinCode: formData.pinCode.trim(),
+        country: formData.country || undefined,
+        city: formData.city || undefined,
         email: formData.email.trim(),
         password: formData.password,
-        confirmPassword: formData.confirmPassword
+        confirmPassword: formData.confirmPassword,
+        role: 'user'
       };
 
       // Call backend registration API
@@ -306,7 +345,54 @@ const RegisterScreen = ({ navigation }) => {
       if (response.success) {
         console.log('✅ Registration successful!', response.data);
         setErrors({}); // Clear any errors
-        
+
+        // After auth, create profile with required fields
+        const profilePayload = {
+          dateOfBirth: toISODate(formData.dob),
+          gender: formData.gender,
+          age: computedAge,
+          phone: formData.phone.trim(),
+          pinCode: formData.pinCode.trim(),
+          location: {
+            country: formData.country || undefined,
+            city: formData.city || undefined,
+          },
+        };
+
+        const profileRes = await profileService.createProfile(profilePayload);
+
+        if (!profileRes.success) {
+          // Map backend profile errors to fields
+          const fieldErrors = {};
+          const resData = profileRes.data || {};
+          if (resData.errors && typeof resData.errors === 'object') {
+            Object.keys(resData.errors).forEach((key) => {
+              const val = resData.errors[key];
+              fieldErrors[key] = Array.isArray(val) ? val[0] : val;
+            });
+          }
+          if (Array.isArray(resData.errors)) {
+            resData.errors.forEach((e) => {
+              const fieldKey = e.field || e.param;
+              const message = e.message || e.msg;
+              if (fieldKey && message) fieldErrors[fieldKey] = message;
+            });
+          }
+          // Try to parse string messages like "Validation failed: age: Age seems invalid"
+          const rawMsg = profileRes.error || resData.message || '';
+          if (rawMsg) {
+            const regex = /(\b[firstName|lastName|email|password|dateOfBirth|dob|gender|age|phone|pinCode|country|city]\b)\s*:\s*([^,]+)/gi;
+            let match;
+            while ((match = regex.exec(rawMsg)) !== null) {
+              const key = match[1].replace('dob', 'dateOfBirth');
+              const message = match[2].trim();
+              fieldErrors[key] = message;
+            }
+          }
+          setErrors((prev) => ({ ...prev, ...fieldErrors, general: rawMsg || 'Profile creation failed' }));
+          return; // stop flow on profile error
+        }
+
         // Show success message
         Alert.alert(
           'Success! 🎉',
@@ -319,7 +405,37 @@ const RegisterScreen = ({ navigation }) => {
           ]
         );
       } else {
-        setErrors({ general: response.message || 'Registration failed' });
+        // If email exists (409), show on email and stop
+        if (response.status === 409) {
+          setErrors((prev) => ({ ...prev, email: response.error || 'Email already exists', general: response.error }));
+          return;
+        }
+        // Normalize backend validation errors to field messages
+        const fieldErrors = {};
+        const resData = response.data || {};
+
+        // Common shapes: { errors: { field: 'msg' | ['msg'] } }
+        if (resData.errors && typeof resData.errors === 'object') {
+          Object.keys(resData.errors).forEach((key) => {
+            const val = resData.errors[key];
+            if (Array.isArray(val)) fieldErrors[key] = val[0];
+            else if (typeof val === 'string') fieldErrors[key] = val;
+          });
+        }
+
+        // Or: { errors: [ { field, message } | { param, msg } ] }
+        if (Array.isArray(resData.errors)) {
+          resData.errors.forEach((e) => {
+            const fieldKey = e.field || e.param;
+            const message = e.message || e.msg;
+            if (fieldKey && message) fieldErrors[fieldKey] = message;
+          });
+        }
+
+        // Or: { message: '...' }
+        const generalMessage = response.message || resData.error || resData.message || 'Registration failed';
+
+        setErrors((prev) => ({ ...prev, ...fieldErrors, general: generalMessage }));
       }
     } catch (error) {
       console.error('❌ Registration error:', error);
@@ -497,6 +613,48 @@ const RegisterScreen = ({ navigation }) => {
             )}
           </View>
 
+          {/* Phone */}
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Phone</Text>
+            <TextInput
+              style={[
+                tw`h-13 border rounded px-4 text-base text-black bg-white font-roboto`,
+                errors.phone ? tw`border-error` : tw`border-black`
+              ]}
+              placeholder="+15551234567"
+              placeholderTextColor="#666"
+              value={formData.phone}
+              onChangeText={(value) => handleInputChange('phone', value)}
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="next"
+            />
+            {errors.phone && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.phone}</Text>
+            )}
+          </View>
+
+          {/* Pin Code */}
+          <View style={tw`mb-5 mx-5`}>
+            <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>Pin Code</Text>
+            <TextInput
+              style={[
+                tw`h-13 border rounded px-4 text-base text-black bg-white font-roboto`,
+                errors.pinCode ? tw`border-error` : tw`border-black`
+              ]}
+              placeholder="e.g., 123456"
+              placeholderTextColor="#666"
+              value={formData.pinCode}
+              onChangeText={(value) => handleInputChange('pinCode', value)}
+              keyboardType="numeric"
+              returnKeyType="next"
+            />
+            {errors.pinCode && (
+              <Text style={[tw`text-sm mt-2 font-roboto`, { color: '#ff6b6b' }]}>{errors.pinCode}</Text>
+            )}
+          </View>
+
           {/* City */}
           <View style={tw`mb-5 mx-5`}>
             <Text style={tw`text-base text-black mb-2 font-roboto font-medium`}>City</Text>
@@ -611,7 +769,9 @@ const RegisterScreen = ({ navigation }) => {
           {/* Summary Error Message */}
           {Object.keys(errors).filter(key => errors[key]).length > 0 && (
             <View style={tw`mx-5 mb-5 p-3 bg-red-50 border border-error rounded-lg`}>
-              <Text style={tw`text-sm text-error text-center font-roboto`}>⚠️ Please fix the errors above</Text>
+              <Text style={tw`text-sm text-error text-center font-roboto`}>
+                {errors.general ? errors.general : '⚠️ Please fix the errors above'}
+              </Text>
             </View>
           )}
 

@@ -1,16 +1,17 @@
 // App.js
 import 'react-native-gesture-handler';
-import React, { useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
+import { PlayfairDisplay_400Regular, PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
+import { Lato_400Regular, Lato_500Medium, Lato_700Bold } from '@expo-google-fonts/lato';
 
 // Landing + auth
-import WelcomeHeader from './components/WelcomeHeader';
+import WelcomeScreen from './screens/WelcomeScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 
@@ -25,21 +26,12 @@ import PackagesScreen from './screens/PackagesScreen';
 // Custom tab bar UI (the red “MENU” pill)
 import CustomTabBar from './components/CustomTabBar';
 
-SplashScreen.preventAutoHideAsync();
+// Let Expo handle the splash screen automatically
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-/** Landing screen without bottom nav */
-function Landing({ navigation }) {
-  return (
-    <WelcomeHeader
-      title="Welcome to WedWisely"
-      subtitle="Your Wedding Planning Companion"
-      navigation={navigation}
-    />
-  );
-}
+/** Landing screen without bottom nav is the WelcomeScreen */
 
 /** Bottom tabs used on: Home, Search, Menu, Chat, Profile */
 function MainTabs() {
@@ -60,26 +52,25 @@ function MainTabs() {
 
 export default function App() {
   const [fontsLoaded] = useFonts({
+    PlayfairDisplay_400Regular,
+    PlayfairDisplay_700Bold,
+    Lato_400Regular,
+    Lato_500Medium,
+    Lato_700Bold,
     'Comfortaa-Regular': require('./assets/fonts/Comfortaa-Regular.ttf'),
-    // Add more weights when you add the files:
-    // 'Comfortaa-Bold': require('./assets/fonts/Comfortaa-Bold.ttf'),
   });
 
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) await SplashScreen.hideAsync();
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
+  // Do not block rendering on fonts; fallback to system fonts if not yet loaded
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+    <View style={{ flex: 1 }}>
       <NavigationContainer>
         <StatusBar style="auto" />
 
         {/* Stack: Landing -> Auth -> Main Tabs */}
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Landing">
           {/* Landing page with Sign In / Register buttons */}
-          <Stack.Screen name="Landing" component={Landing} />
+          <Stack.Screen name="Landing" component={WelcomeScreen} />
 
           {/* Auth */}
           <Stack.Screen name="Register" component={RegisterScreen} />

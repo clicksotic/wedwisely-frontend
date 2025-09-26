@@ -89,7 +89,12 @@ class ApiService {
       console.log(`🌐 API Request: ${config.method} ${url}`);
       
       const response = await fetch(url, config);
-      const responseData = await response.json();
+      let responseData = null;
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        responseData = null;
+      }
 
       console.log(`✅ API Response: ${response.status} ${url}`);
 
@@ -105,7 +110,7 @@ class ApiService {
       // Handle error responses
       return {
         success: false,
-        error: responseData.message || 'Request failed',
+        error: responseData?.error || responseData?.message || `HTTP ${response.status}`,
         status: response.status,
         data: responseData,
       };
