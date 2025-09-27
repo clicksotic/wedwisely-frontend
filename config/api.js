@@ -1,21 +1,23 @@
-// API Configuration for WedWisely Backend
+
+
+const ENV_BASE_URL_DEV = process.env.DEVELOPMENT;
+const ENV_BASE_URL_STAGING = process.env.STAGING;
+const ENV_BASE_URL_PROD = process.env.PRODUCTION;
+const ENV_TIMEOUT = process.env.TIMEOUT_MS ? parseInt(process.env.TIMEOUT_MS) : undefined;
+
 const API_CONFIG = {
-  // Development - manually set your IP here
+  // Each env reads only from env vars (no hardcoded fallbacks)
   development: {
-    baseURL: 'http://192.168.18.224:3000', // Change this to your system IP
-    timeout: 10000,
+    baseURL: ENV_BASE_URL_DEV,
+    timeout: ENV_TIMEOUT || 10000,
   },
-  
-  // Production (update this with your actual production URL)
   production: {
-    baseURL: 'https://your-production-backend.com',
-    timeout: 15000,
+    baseURL: ENV_BASE_URL_PROD,
+    timeout: ENV_TIMEOUT || 15000,
   },
-  
-  // Staging (if you have one)
   staging: {
-    baseURL: 'https://your-staging-backend.com',
-    timeout: 12000,
+    baseURL: ENV_BASE_URL_STAGING,
+    timeout: ENV_TIMEOUT || 12000,
   }
 };
 
@@ -66,7 +68,15 @@ export const timeout = apiConfig.timeout;
 
 // Export getBaseURL function for backward compatibility
 export const getBaseURL = () => {
-  return getCurrentConfig().baseURL;
+  const url = getCurrentConfig().baseURL;
+  return url;
 };
 
 export default apiConfig;
+ 
+// Brand theme (colors)
+export const THEME = {
+  backgroundMuted: '#E8E2DB', // soft beige
+  brandGold: '#D4AF37',       // primary gold
+  backgroundLight: '#FAFAF7', // light panel
+};
