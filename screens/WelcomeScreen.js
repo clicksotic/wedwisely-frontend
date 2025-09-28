@@ -22,7 +22,7 @@ const WelcomeScreen = ({ navigation }) => {
       <View style={[tw`flex-1`, { backgroundColor: 'transparent' }]}> 
         {/* Centered logo */}
         <Image
-          source={require('../assets/logo.png')}
+          source={require('../assets/Logo.png')}
           style={{ position: 'absolute', top: 49, width: 383, height: 383, opacity: 1, alignSelf: 'center', zIndex: 2 }}
           resizeMode="contain"
         />
