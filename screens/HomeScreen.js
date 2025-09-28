@@ -6,30 +6,29 @@ import { LinearGradient } from "expo-linear-gradient";
 import tw from "twrnc";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import WelcomeHeader from "../components/WelcomeHeader";
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const services = [
-    {
-      id: 1,
-      name: "Venues",
-      image: "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c"
-    },
-    {
-      id: 2,
-      name: "Catering",
-      image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836"
-    },
-    {
-      id: 3,
-      name: "Bakery",
-      image: "https://images.unsplash.com/photo-1542831371-d531d36971e6"
-    },
-    {
-      id: 4,
-      name: "Boutique",
-      image: "https://images.unsplash.com/photo-1521334884684-d80222895322"
-    }
+    { id: 1, name: "Photography", image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32" },
+    { id: 2, name: "Catering", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836" },
+    { id: 3, name: "Decoration", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e" },
+    { id: 4, name: "Music", image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d" },
+    { id: 5, name: "Transportation", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70" },
+    { id: 6, name: "Venue", image: "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c" },
+    { id: 7, name: "Others", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee" },
+  ];
+
+  const categories = [
+    { key: 'Photography', icon: 'camera' },
+    { key: 'Catering', icon: 'fast-food' },
+    { key: 'Decoration', icon: 'color-palette' },
+    { key: 'Music', icon: 'musical-notes' },
+    { key: 'Transportation', icon: 'car' },
+    { key: 'Venue', icon: 'home' },
+    { key: 'Others', icon: 'apps' },
   ];
 
   return (
@@ -49,6 +48,8 @@ export default function HomeScreen() {
           />
         </View>
       </View>
+
+      
 
       {/* 2. Hero card (responsive) */}
       <TouchableOpacity style={tw`rounded-2xl overflow-hidden mb-6`}>
@@ -101,6 +102,7 @@ export default function HomeScreen() {
           {services.map((service) => (
             <TouchableOpacity 
               key={service.id}
+              onPress={() => navigation.navigate('Packages', { category: service.name })}
               style={[tw`rounded-2xl overflow-hidden`, { width: '48%', aspectRatio: 1.25, backgroundColor: '#eee', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }]}
             >
               <Image
