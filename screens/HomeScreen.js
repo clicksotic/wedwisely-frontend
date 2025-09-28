@@ -4,8 +4,11 @@ import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import tw from "twrnc";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import WelcomeHeader from "../components/WelcomeHeader";
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const services = [
     {
       id: 1,
@@ -30,14 +33,8 @@ export default function HomeScreen() {
   ];
 
   return (
-    <ScrollView style={tw`flex-1 bg-white px-5 pt-12 `}>
-      {/* Logo */}
-      <View style={tw`items-center mb-[-25px] top-[-10px]`}>
-        <Image
-          source={require("../assets/Logo-black.png")}
-          style={tw`w-24 h-24 rounded-full`}
-        />
-      </View>
+    <ScrollView style={tw`flex-1 bg-[#FAFAF7] px-5 pt-4 `} contentContainerStyle={{ paddingBottom: insets.bottom + 8 }}>
+      <WelcomeHeader />
 
       {/* 1. Header */}
       <View style={tw`flex-row items-center mb-3`}>
@@ -53,40 +50,45 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* 2. Wedding Packages */}
-      <TouchableOpacity style={tw`rounded-xl overflow-hidden mb-6`}>
-        <View style={tw`w-full h-45 overflow-hidden`}>
+      {/* 2. Hero card (responsive) */}
+      <TouchableOpacity style={tw`rounded-2xl overflow-hidden mb-6`}>
+        <View style={{ width: '100%', aspectRatio: 16/9 }}>
           <Image
             source={require("../assets/HomePage/MainMenuPackagesCard.jpg")}
-            style={tw`w-full h-48 -mt-3`}
+            style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
           />
-        </View>
-        <Text style={tw`absolute top-3 left-4 text-m text-black font-semibold`}>
-          Wedding Packages
-        </Text>
-        <View style={tw`absolute bottom-3 right-4`}>
-          <Ionicons name="arrow-forward" size={28} color="#DADADA" />
+          <LinearGradient
+            colors={[ 'rgba(0,0,0,0)', 'rgba(0,0,0,0.35)' ]}
+            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '45%' }}
+          />
+          <Text style={{ position: 'absolute', top: 10, left: 14, color: '#111', fontSize: 16, fontWeight: '600' }}>Packages</Text>
+          <View style={{ position: 'absolute', right: 14, top: '50%', marginTop: -20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#DADADA' }}>
+            <Ionicons name="arrow-forward" size={18} color="#DADADA" />
+          </View>
         </View>
       </TouchableOpacity>
 
-      {/* 3. To-do List */}
-      <View style={tw`bg-gray-100 rounded-xl p-4 mb-4 h-40`}>
-        <Text style={tw`text-lg font-semibold mb-0 text-black`}>To do list</Text>
-        <View style={tw`mb-2`}>
-          <Text style={tw`text-sm text-gray-700`}>• Message the Venue Manager</Text>
-          <Text style={tw`text-sm text-gray-700`}>• Book the Venue</Text>
-          <Text style={tw`text-sm text-gray-700`}>• Go for cake testing</Text>
+      {/* 3. To-do List (responsive card) */}
+      <View style={[tw`rounded-2xl p-4 mb-6`, { backgroundColor: '#E8E2DB' }]}>
+        <Text style={[tw`text-black mb-2`, { fontFamily: 'Lato_500Medium', fontSize: 14 }]}>To do list</Text>
+        <View style={tw`mb-3`}>
+          <Text style={{ color: '#000', fontFamily: 'Lato_500Medium', fontSize: 12, lineHeight: 12, letterSpacing: -0.33, marginBottom: 6 }}>• Message the Venue Manager</Text>
+          <Text style={{ color: '#000', fontFamily: 'Lato_500Medium', fontSize: 12, lineHeight: 12, letterSpacing: -0.33, marginBottom: 6 }}>• Book the Venue</Text>
+          <Text style={{ color: '#000', fontFamily: 'Lato_500Medium', fontSize: 12, lineHeight: 12, letterSpacing: -0.33 }}>• Go for cake testing</Text>
         </View>
 
-        <View style={tw`w-full h-1.5 bg-gray-300 rounded-full overflow-hidden mb-1`}>
-          <View style={tw`h-full bg-[#D4AF37] w-[48%]`} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <Text style={{ color: '#000', fontFamily: 'Lato_500Medium', fontSize: 12, lineHeight: 12, letterSpacing: -0.33 }}>Progress</Text>
+          <Text style={{ color: '#000', fontFamily: 'Lato_500Medium', fontSize: 12, lineHeight: 12, letterSpacing: -0.33 }}>48%</Text>
+        </View>
+        <View style={{ width: '100%', height: 8, backgroundColor: '#FFFFFF', borderRadius: 9999, overflow: 'hidden', marginBottom: 4 }}>
+          <View style={{ height: '100%', width: '48%', backgroundColor: '#D4AF37' }} />
         </View>
 
-        <View style={tw`flex-row justify-between items-center`}>
-          <Text style={tw`text-xs text-gray-600`}>48%</Text>
+        <View style={tw`flex-row justify-center items-center mt-1`}>
           <TouchableOpacity>
-            <Text style={tw`text-xs text-[#D4AF37]`}>See full list</Text>
+            <Text style={{ color: '#D4AF37', fontFamily: 'Lato_500Medium', fontSize: 12, lineHeight: 12, letterSpacing: -0.33 }}>See full list</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -95,23 +97,22 @@ export default function HomeScreen() {
       <View style={tw`mb-10`}>
         <Text style={tw`text-lg font-semibold text-black mb-3`}>Services</Text>
 
-        <View style={tw`flex-row flex-wrap justify-between`}>
+        <View style={[tw`flex-row flex-wrap justify-between`, { rowGap: 12 }]}>
           {services.map((service) => (
             <TouchableOpacity 
               key={service.id}
-              style={tw`w-[48%] h-28 mb-4 rounded-xl overflow-hidden shadow-lg`}
+              style={[tw`rounded-2xl overflow-hidden`, { width: '48%', aspectRatio: 1.25, backgroundColor: '#eee', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }]}
             >
               <Image
                 source={{ uri: service.image }}
-                style={tw`w-full h-full`}
+                style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
-              {/* Gradient overlay */}
               <LinearGradient
-                colors={['transparent', 'rgba(225,225,225,1)']}
-                style={tw`absolute bottom-0 left-0 right-0 h-16`}
+                colors={[ 'rgba(0,0,0,0)', 'rgba(0,0,0,0.45)' ]}
+                style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '44%' }}
               />
-              <Text style={tw`absolute bottom-2 left-2 text-lg text-[#D4AF37] font-semibold`}>
+              <Text numberOfLines={1} style={{ position: 'absolute', bottom: 8, left: 10, right: 10, color: '#D4AF37', fontSize: 18, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.25)', textShadowRadius: 4, textAlign: 'center' }}>
                 {service.name}
               </Text>
             </TouchableOpacity>

@@ -15,11 +15,12 @@ import WelcomeScreen from './screens/WelcomeScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 
-// Tab pages (create these screens if you haven’t yet)
-import DashboardScreen from './screens/DashboardScreen';
+// Tab pages
 import HomeScreen from './screens/HomeScreen';
+import DashboardScreen from './screens/DashboardScreen';
 import SearchScreen from './screens/SearchScreen';
 import ServicesScreen from './screens/ServicesScreen';
+import PackagesScreen from './screens/PackagesScreen';
 import ChatScreen from './screens/ChatScreen';
 import ProfileScreen from './screens/ProfileScreen';
 
@@ -37,9 +38,9 @@ function MainTabs() {
       tabBar={(props) => <CustomTabBar {...props} />}
       initialRouteName="Home"
     >
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
-      <Tab.Screen name="Packages" component={PackagesScreen} />
+      <Tab.Screen name="Packages" component={ServicesScreen} />
       <Tab.Screen name="Chat" component={ChatScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

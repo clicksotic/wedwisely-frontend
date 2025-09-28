@@ -4,7 +4,8 @@ import { View, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 
-const ICON_SIZE = 28;
+const ICON_SIZE = 24;
+const BAR_COLOR = '#D4AF37';
 
 const CustomTabBar = ({ state, navigation }) => {
   const insets = useSafeAreaInsets();
@@ -19,13 +20,13 @@ const CustomTabBar = ({ state, navigation }) => {
   };
 
   const iconFor = (name) => {
-    const color = "#fff"; // all icons white
+    const color = '#fff';
     switch (name) {
       case "Dashboard":
         return (
           <Image
             source={require("../assets/dash.png")}
-            style={{ width: ICON_SIZE, height: ICON_SIZE, tintColor: "#fff" }}
+            style={{ width: ICON_SIZE, height: ICON_SIZE, tintColor: color }}
             resizeMode="contain"
           />
         );
@@ -33,6 +34,8 @@ const CustomTabBar = ({ state, navigation }) => {
         return <Feather name="search" size={ICON_SIZE} color={color} />;
       case "Home":
         return <Feather name="home" size={ICON_SIZE} color={color} />;
+      case "Packages":
+        return <Feather name="package" size={ICON_SIZE} color={color} />;
       case "Chat":
         return (
           <View>
@@ -48,11 +51,14 @@ const CustomTabBar = ({ state, navigation }) => {
     }
   };
 
-  // enforce correct order: Dashboard → Search → Home → Chat → Profile
-  const tabOrder = ["Dashboard", "Search", "Home", "Chat", "Profile"];
+  // render tabs in app order
+  const tabOrder = ["Home", "Search", "Packages", "Chat", "Profile"];
 
   return (
-    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 6) }]}>
+    <View style={[
+      styles.wrap,
+      { marginBottom: insets.bottom }
+    ]}>
       {tabOrder.map((tabName) => {
         const index = state.routes.findIndex((r) => r.name === tabName);
         if (index === -1) return null;
@@ -75,15 +81,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: '#fff',
-    height: 74,
+    backgroundColor: BAR_COLOR,
+    height: 70,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e6e6e6',
+    borderTopColor: BAR_COLOR,
   },
   item: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   dot: {
     position: "absolute",
@@ -92,7 +100,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "white",
+    backgroundColor: '#fff',
   },
 });
 

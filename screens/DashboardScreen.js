@@ -1,10 +1,12 @@
 // screens/DashboardScreen.js
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import WelcomeHeader from '../components/WelcomeHeader';
 
 export default function DashboardScreen() {
   return (
     <View style={styles.container}>
+      <WelcomeHeader />
       <Text style={styles.text}>📊 Dashboard Screen</Text>
     </View>
   );

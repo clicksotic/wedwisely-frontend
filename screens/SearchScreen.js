@@ -1,10 +1,12 @@
 // screens/SearchScreen.js
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import WelcomeHeader from '../components/WelcomeHeader';
 
 export default function SearchScreen() {
   return (
     <View style={styles.container}>
+      <WelcomeHeader />
       <Text style={styles.text}>This is the Search Screen</Text>
     </View>
   );

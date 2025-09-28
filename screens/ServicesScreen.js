@@ -3,6 +3,7 @@ import { View, Text, TextInput, Image, TouchableOpacity, ScrollView } from 'reac
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, AntDesign, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import WelcomeHeader from '../components/WelcomeHeader';
 
 const GOLD = '#D4AF37';
 
@@ -90,7 +91,8 @@ const ServicesScreen = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#FAFAF7' }}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 36, paddingBottom: insets.bottom + 72 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 16, paddingBottom: insets.bottom + 8 }}>
+        <WelcomeHeader />
         <Text style={{
           fontFamily: 'PlayfairDisplay_400Regular',
           fontWeight: '500',
@@ -132,8 +134,6 @@ const ServicesScreen = () => {
         {filtered.map(item => (
           <ServiceCard key={item.id} item={item} onPress={handlePress} />
         ))}
-
-        <View style={{ height: insets.bottom + 32 }} />
       </ScrollView>
     </View>
   );
