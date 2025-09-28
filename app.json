@@ -28,7 +28,14 @@
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "DEVELOPMENT": "http://192.168.43.156:3000",
+      "STAGING": "https://your-staging-backend.com",
+      "PRODUCTION": "https://your-production-backend.com",
+      "TIMEOUT_MS": 10000,
+      "ENVIRONMENT": "development"
+    }
 
   }
 }

@@ -1,9 +1,12 @@
 
 
-const ENV_BASE_URL_DEV = process.env.DEVELOPMENT;
-const ENV_BASE_URL_STAGING = process.env.STAGING;
-const ENV_BASE_URL_PROD = process.env.PRODUCTION;
-const ENV_TIMEOUT = process.env.TIMEOUT_MS ? parseInt(process.env.TIMEOUT_MS) : undefined;
+import Constants from 'expo-constants';
+
+const extra = (Constants && Constants.expoConfig && Constants.expoConfig.extra) || {};
+const ENV_BASE_URL_DEV = process.env.DEVELOPMENT || extra.DEVELOPMENT;
+const ENV_BASE_URL_STAGING = process.env.STAGING || extra.STAGING;
+const ENV_BASE_URL_PROD = process.env.PRODUCTION || extra.PRODUCTION;
+const ENV_TIMEOUT = (process.env.TIMEOUT_MS ? parseInt(process.env.TIMEOUT_MS) : undefined) || (extra.TIMEOUT_MS !== undefined ? parseInt(extra.TIMEOUT_MS) : undefined);
 
 const API_CONFIG = {
   // Each env reads only from env vars (no hardcoded fallbacks)
@@ -23,9 +26,8 @@ const API_CONFIG = {
 
 // Get current environment
 const getCurrentConfig = () => {
-  // You can change this to 'production' or 'staging' when deploying
-  //const environment = _DEV_ ? 'development' : 'production';
-  return API_CONFIG['development'];
+  const environment = (process.env.ENVIRONMENT || extra.ENVIRONMENT || 'development').toLowerCase();
+  return API_CONFIG[environment] || API_CONFIG['development'];
 };
 
 // API Endpoints

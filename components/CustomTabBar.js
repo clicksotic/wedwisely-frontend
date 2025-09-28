@@ -73,6 +73,10 @@ const CustomTabBar = ({ state, navigation }) => {
 
 const styles = StyleSheet.create({
   wrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -80,6 +84,7 @@ const styles = StyleSheet.create({
     height: 74,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#e6e6e6',
+    zIndex: 10,
   },
   item: {
     width: 56,

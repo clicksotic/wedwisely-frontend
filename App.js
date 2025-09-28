@@ -19,6 +19,7 @@ import LoginScreen from './screens/LoginScreen';
 // Tab pages (create these if you haven’t yet)
 import HomeScreen from './screens/HomeScreen';
 import SearchScreen from './screens/SearchScreen';
+import ServicesScreen from './screens/ServicesScreen';
 import ChatScreen from './screens/ChatScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import PackagesScreen from './screens/PackagesScreen';
@@ -43,7 +44,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
-      <Tab.Screen name="Packages" component={PackagesScreen} />
+      <Tab.Screen name="Packages" component={ServicesScreen} />
       <Tab.Screen name="Chat" component={ChatScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
