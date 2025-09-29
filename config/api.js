@@ -57,6 +57,12 @@ export const API_ENDPOINTS = {
     ME: '/api/profiles/me',
   },
   
+  // Services endpoints (align with backend)
+  SERVICES: {
+    CARDS: '/api/services/cards',
+    BY_ID: (id) => `/api/services/${id}`,
+  },
+  
   // Health check
   HEALTH: '/health',
   ENVIRONMENT: '/api/environment',
