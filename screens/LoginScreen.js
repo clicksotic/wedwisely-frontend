@@ -12,9 +12,10 @@ import {
 import * as Font from 'expo-font';
 import { MaterialIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
-import authService from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,6 +23,7 @@ const LoginScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     async function loadFonts() {
@@ -80,41 +82,45 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    // 🔹 Dummy hardcoded credentials
-    const dummyEmail = 'demo@wedwisely.com';
-    const dummyPassword = '123456';
+    setIsLoading(true);
+    setErrors({});
 
-    if (
-      formData.email.trim().toLowerCase() === dummyEmail &&
-      formData.password === dummyPassword
-    ) {
-      console.log('✅ Dummy login successful!');
-      setErrors({}); // Clear any errors
-      navigation.replace('MainTabs'); // navigate to Home + navbar
-      return;
-    }
-
-    // If dummy login fails, try real backend
     try {
-      // Show loading state
-      setErrors({ general: 'Logging in...' });
-      
-      // Call backend login API
-      const response = await authService.login({
+      // 🔹 Dummy hardcoded credentials
+      const dummyEmail = 'demo@wedwisely.com';
+      const dummyPassword = '123456';
+
+      if (
+        formData.email.trim().toLowerCase() === dummyEmail &&
+        formData.password === dummyPassword
+      ) {
+        console.log('✅ Dummy login successful!');
+        // For dummy login, we'll create a mock user object
+        // The context will handle the navigation automatically
+        setErrors({});
+        navigation.replace('MainTabs');
+        return;
+      }
+
+      // Try real backend login using the context
+      const response = await login({
         email: formData.email.trim(),
         password: formData.password
       });
 
       if (response.success) {
         console.log('✅ Backend login successful!', response.data);
-        setErrors({}); // Clear any errors
-        navigation.replace('MainTabs'); // navigate to Home + navbar
+        setErrors({});
+        // Navigation will be handled automatically by the context
+        navigation.replace('MainTabs');
       } else {
         setErrors({ general: response.message || 'Login failed' });
       }
     } catch (error) {
-      console.error('❌ Backend login error:', error);
+      console.error('❌ Login error:', error);
       setErrors({ general: 'Network error. Please try again.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -223,8 +229,14 @@ const LoginScreen = ({ navigation }) => {
         )}
 
         {/* Login Button */}
-        <TouchableOpacity style={tw`bg-black h-13 rounded justify-center items-center mt-10`} onPress={handleLogin}>
-          <Text style={tw`text-white text-base font-bold tracking-wider font-roboto`}>LOG IN</Text>
+        <TouchableOpacity 
+          style={[tw`bg-black h-13 rounded justify-center items-center mt-10`, isLoading && tw`opacity-50`]} 
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={tw`text-white text-base font-bold tracking-wider font-roboto`}>
+            {isLoading ? 'LOGGING IN...' : 'LOG IN'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

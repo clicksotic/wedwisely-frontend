@@ -1,7 +1,7 @@
 // App.js
 import 'react-native-gesture-handler';
 import React from 'react';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { PlayfairDisplay_400Regular, PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { Lato_400Regular, Lato_500Medium, Lato_700Bold } from '@expo-google-fonts/lato';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Landing + auth
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -47,8 +48,46 @@ function MainTabs() {
   );
 }
 
+/** Main App Navigator with authentication logic */
+function AppNavigator() {
+  console.log('🧭 AppNavigator rendering...');
+  const { isAuthenticated, isLoading } = useAuth();
+  console.log('🔐 Auth state - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated);
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    console.log('⏳ Showing loading screen...');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAF7' }}>
+        <ActivityIndicator size="large" color="#D4AF37" />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isAuthenticated ? "MainTabs" : "Landing"}>
+      {/* Landing page with Sign In / Register buttons */}
+      <Stack.Screen name="Landing" component={WelcomeScreen} />
+
+      {/* Auth */}
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+
+      {/* App pages with the bottom navbar */}
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  console.log('🚀 App component starting...');
+  
+  // Temporarily disable font loading to test
+  const [fontsLoaded] = React.useState(true); // Force fonts to be "loaded"
+  
+  // Uncomment this to re-enable font loading with timeout
+  /*
+  const [fontsLoaded, fontError] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_700Bold,
     Lato_400Regular,
@@ -57,22 +96,62 @@ export default function App() {
     'Comfortaa-Regular': require('./assets/fonts/Comfortaa-Regular.ttf'),
   });
 
-  return (
-    <View style={{ flex: 1 }}>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Landing">
-          {/* Landing page with Sign In / Register buttons */}
-          <Stack.Screen name="Landing" component={WelcomeScreen} />
+  // Add a timeout for font loading
+  const [fontTimeout, setFontTimeout] = React.useState(false);
+  
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log('⏰ Font loading timeout - proceeding without fonts');
+      setFontTimeout(true);
+    }, 3000); // 3 second timeout
 
-          {/* Auth */}
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
+    return () => clearTimeout(timeout);
+  }, []);
 
-          {/* App pages with the bottom navbar */}
-          <Stack.Screen name="MainTabs" component={MainTabs} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </View>
-  );
+  console.log('📝 Fonts loaded:', fontsLoaded, 'Font error:', fontError, 'Font timeout:', fontTimeout);
+
+  // Show loading screen while fonts are loading (but not forever)
+  if (!fontsLoaded && !fontTimeout) {
+    console.log('⏳ Waiting for fonts to load...');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAF7' }}>
+        <ActivityIndicator size="large" color="#D4AF37" />
+      </View>
+    );
+  }
+  */
+
+  console.log('✅ Proceeding with app (fonts disabled for testing)...');
+
+  // Temporary bypass for testing
+  console.log('🔄 Rendering with AuthProvider...');
+  
+  try {
+    return (
+      <AuthProvider>
+        <View style={{ flex: 1 }}>
+          <NavigationContainer>
+            <StatusBar style="auto" />
+            <AppNavigator />
+          </NavigationContainer>
+        </View>
+      </AuthProvider>
+    );
+  } catch (error) {
+    console.error('❌ Error in AuthProvider:', error);
+    // Fallback to simple navigation without auth
+    return (
+      <View style={{ flex: 1 }}>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Landing">
+            <Stack.Screen name="Landing" component={WelcomeScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="MainTabs" component={MainTabs} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </View>
+    );
+  }
 }

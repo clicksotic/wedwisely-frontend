@@ -7,10 +7,12 @@ import tw from "twrnc";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import WelcomeHeader from "../components/WelcomeHeader";
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { user } = useAuth();
   const services = [
     { id: 1, name: "Photography", image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32" },
     { id: 2, name: "Catering", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836" },
@@ -39,11 +41,17 @@ export default function HomeScreen() {
       <View style={tw`flex-row items-center mb-3`}>
         <View style={tw`flex-1 w-[75%] flex-row items-center`}>
           <Text style={tw`text-xl text-[#D4AF37] font-semibold`}>Welcome,</Text>
-          <Text style={tw`text-xl text-black font-semibold ml-2`}>Jennifer</Text>
+          <Text style={tw`text-xl text-black font-semibold ml-2`}>
+            {user?.fullName || (user?.firstName && user?.lastName 
+              ? `${user.firstName} ${user.lastName}` 
+              : user?.firstName || user?.email?.split('@')[0] || 'User')}
+          </Text>
         </View>
         <View style={tw`w-[25%] items-end`}>
           <Image
-            source={{ uri: "https://i.pravatar.cc/100" }}
+            source={{ 
+              uri: user?.profilePicture || user?.avatar || "https://i.pravatar.cc/100" 
+            }}
             style={tw`w-10 h-10 rounded-full`}
           />
         </View>

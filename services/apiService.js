@@ -174,6 +174,33 @@ class ApiService {
     console.log(`🏆 Best backend URL found: ${bestURL}`);
     return bestURL;
   };
+
+  // Clear auth token from storage (alias for removeAuthToken)
+  clearAuthToken = async () => {
+    return this.removeAuthToken();
+  };
+
+  // Clear all app data
+  clearAllData = async () => {
+    try {
+      console.log('🧹 Clearing all app data...');
+      
+      // Get all keys
+      const keys = await AsyncStorage.getAllKeys();
+      console.log('📋 Found keys to clear:', keys);
+      
+      // Clear all keys
+      if (keys.length > 0) {
+        await AsyncStorage.multiRemove(keys);
+        console.log('✅ All data cleared from AsyncStorage');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Error clearing all data:', error);
+      return false;
+    }
+  };
 }
 
 // Create and export a single instance
