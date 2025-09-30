@@ -213,7 +213,7 @@ const ServicesScreen = ({ route }) => {
             />
           </View>
           <TouchableOpacity style={{ marginLeft: 12 }} onPress={() => setShowFilter(true)}>
-            <MaterialCommunityIcons name="flashlight" size={22} color={GOLD} />
+            <MaterialCommunityIcons name="filter-variant" size={22} color={GOLD} />
           </TouchableOpacity>
           <TouchableOpacity style={{ marginLeft: 16 }} onPress={() => setSortAsc(prev => !prev)}>
             <MaterialIcons name="swap-vert" size={22} color={GOLD} />
