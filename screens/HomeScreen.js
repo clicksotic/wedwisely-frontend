@@ -60,7 +60,10 @@ export default function HomeScreen() {
       
 
       {/* 2. Hero card (responsive) */}
-      <TouchableOpacity style={tw`rounded-2xl overflow-hidden mb-6`}>
+      <TouchableOpacity
+        style={tw`rounded-2xl overflow-hidden mb-6`}
+        onPress={() => navigation.navigate('Search')}
+      >
         <View style={{ width: '100%', aspectRatio: 16/9 }}>
           <Image
             source={require("../assets/HomePage/MainMenuPackagesCard.jpg")}
