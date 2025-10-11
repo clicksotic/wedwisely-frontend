@@ -1,5 +1,5 @@
 // screens/SearchScreen.js
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ImageBackground,
   Modal,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
@@ -27,33 +28,16 @@ const CATEGORIES = [
   'Others',
 ];
 
-// Dummy packages
-const packagesData = [
-  {
-    id: 'p1',
-    title: 'DELUXE PACKAGE by James H.',
-    services: ['Venue', 'Catering', 'Photography', 'Music'],
-    price: 12000,
-    location: { city: 'Lahore', country: 'Pakistan' },
-    image: require('../assets/d9c4406cc2e6643477551e9ae9b2ac23a94d1d51.jpg'),
-  },
-  {
-    id: 'p2',
-    title: 'SOUL PACKAGE by Hannah J.',
-    services: ['Venue', 'Catering', 'Photography'],
-    price: 8000,
-    location: { city: 'Karachi', country: 'Pakistan' },
-    image: require('../assets/0b917fe83ca46a5c50cc62709bbbfffc541ef35f.jpg'),
-  },
-];
+// 🧩 Replace with your backend URL
+const BACKEND_URL = 'http://192.168.1.5:3000/api/packages'; 
+// ⚠️ Use your local IP (same Wi-Fi as Expo)
 
-/* Compact, single-line pill */
 const Pill = ({ text, isGold = false, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
     activeOpacity={0.85}
     style={{
-      height: 26,                 // fixed compact height
+      height: 26,
       paddingHorizontal: 10,
       borderRadius: 13,
       borderWidth: 1,
@@ -66,11 +50,11 @@ const Pill = ({ text, isGold = false, onPress }) => (
   >
     <Text
       numberOfLines={1}
-      allowFontScaling={false}    // stops dynamic type from stretching the pill
+      allowFontScaling={false}
       style={{
         fontSize: 12,
-        lineHeight: 14,           // tighter line height prevents tall pills
-        includeFontPadding: false, // trims Android extra text padding
+        lineHeight: 14,
+        includeFontPadding: false,
         textAlignVertical: 'center',
         color: isGold ? '#fff' : GOLD,
         fontFamily: 'Lato_500Medium',
@@ -83,7 +67,6 @@ const Pill = ({ text, isGold = false, onPress }) => (
 
 const PackageCard = ({ item }) => {
   const [expanded, setExpanded] = useState(false);
-
   const maxVisible = 3;
   const visibleServices = expanded ? item.services : item.services.slice(0, maxVisible);
   const remaining = item.services.length - maxVisible;
@@ -102,33 +85,31 @@ const PackageCard = ({ item }) => {
         style={{ width: '100%', height: 167 }}
         imageStyle={{ borderRadius: 20 }}
       >
-        {/* Gradient just for title fade */}
         <LinearGradient
           colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={{ flex: 1, justifyContent: 'flex-end', padding: 14 }}
         >
-          {/* Title above pills */}
           <Text
             style={{
               color: '#fff',
               fontFamily: 'Lato_500Medium',
               fontSize: 15,
-              marginBottom: 40, // reserve space for pills row
+              marginBottom: 40,
             }}
           >
             {item.title}
           </Text>
         </LinearGradient>
 
-        {/* Pills pinned to the very bottom */}
+        {/* Pills pinned to bottom */}
         <View
           style={{
             position: 'absolute',
             left: 14,
             right: 14,
-            bottom: 10, // sits inside the rounded edge
+            bottom: 10,
           }}
         >
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -145,7 +126,7 @@ const PackageCard = ({ item }) => {
           </ScrollView>
         </View>
 
-        {/* Arrow Button */}
+        {/* Arrow */}
         <View
           style={{
             position: 'absolute',
@@ -171,6 +152,8 @@ const PackageCard = ({ item }) => {
 
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
+  const [packagesData, setPackagesData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [sortAsc, setSortAsc] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
@@ -181,6 +164,30 @@ export default function SearchScreen() {
     minPrice: '',
     maxPrice: '',
   });
+
+  // 🚀 Fetch packages from backend
+  useEffect(() => {
+  const fetchPackages = async () => {
+    try {
+      const res = await fetch('http://192.168.1.5:3000/api/packages');
+      const data = await res.json();
+      console.log('📦 Response from backend:', data);
+
+      // ✅ Adapt to backend's real format
+      if (Array.isArray(data.packages)) {
+        setPackagesData(data.packages);
+      } else {
+        console.error('Unexpected data shape:', data);
+      }
+    } catch (err) {
+      console.error('Network error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPackages();
+}, []);
 
   const appliedFilterCount = useMemo(
     () =>
@@ -195,7 +202,10 @@ export default function SearchScreen() {
     const q = query.trim().toLowerCase();
     const base = packagesData.filter(
       (p) =>
-        (!filters.category || p.services.includes(filters.category)) &&
+        (!filters.category ||
+          p.services?.some((s) =>
+            s.name?.toLowerCase().includes(filters.category.toLowerCase())
+          )) &&
         (!filters.city ||
           (p.location?.city || '').toLowerCase().includes(filters.city.toLowerCase())) &&
         (!filters.country ||
@@ -205,11 +215,22 @@ export default function SearchScreen() {
         (!filters.minPrice || Number(p.price) >= Number(filters.minPrice)) &&
         (!filters.maxPrice || Number(p.price) <= Number(filters.maxPrice))
     );
-    const searched = q ? base.filter((p) => p.title.toLowerCase().includes(q)) : base;
+    const searched = q
+      ? base.filter((p) => p.name?.toLowerCase().includes(q))
+      : base;
     return [...searched].sort((a, b) =>
-      sortAsc ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title)
+      sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
     );
-  }, [query, filters, sortAsc]);
+  }, [query, filters, sortAsc, packagesData]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={GOLD} />
+        <Text style={{ marginTop: 10 }}>Loading packages...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#FAFAF7' }}>
@@ -236,7 +257,7 @@ export default function SearchScreen() {
           Wedding Packages
         </Text>
 
-        {/* Search bar */}
+        {/* 🔍 Search + Filter */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <View
             style={{
@@ -263,11 +284,11 @@ export default function SearchScreen() {
               }}
             />
           </View>
-          {/* Filter button */}
+
           <TouchableOpacity style={{ marginLeft: 12 }} onPress={() => setShowFilter(true)}>
             <MaterialCommunityIcons name="filter-variant" size={22} color={GOLD} />
           </TouchableOpacity>
-          {/* Sort button */}
+
           <TouchableOpacity style={{ marginLeft: 16 }} onPress={() => setSortAsc((p) => !p)}>
             <MaterialIcons name="swap-vert" size={22} color={GOLD} />
           </TouchableOpacity>
@@ -279,18 +300,29 @@ export default function SearchScreen() {
           </Text>
         )}
 
-        {filtered.map((pkg) => (
-          <PackageCard key={pkg.id} item={pkg} />
-        ))}
-
-        {!filtered.length && (
+        {/* 🎁 Packages */}
+        {filtered.length > 0 ? (
+          filtered.map((pkg) => (
+            <PackageCard
+              key={pkg._id}
+              item={{
+                id: pkg._id,
+                title: pkg.name,
+                services: pkg.services?.map((s) => s.name) || [],
+                price: pkg.price,
+                location: pkg.location,
+                image: require('../assets/d9c4406cc2e6643477551e9ae9b2ac23a94d1d51.jpg'),
+              }}
+            />
+          ))
+        ) : (
           <Text style={{ textAlign: 'center', color: '#555', marginTop: 20 }}>
             No packages found
           </Text>
         )}
       </ScrollView>
 
-      {/* Filter Modal */}
+      {/* 🧭 Filter Modal */}
       <Modal
         visible={showFilter}
         transparent
@@ -317,6 +349,7 @@ export default function SearchScreen() {
           <Text style={{ fontFamily: 'Lato_700Bold', fontSize: 16, marginBottom: 10 }}>
             Filters
           </Text>
+
           <ScrollView>
             {/* Category */}
             <Text style={{ fontFamily: 'Lato_500Medium', marginBottom: 6 }}>Category</Text>
@@ -378,7 +411,7 @@ export default function SearchScreen() {
               }}
             />
 
-            {/* Price */}
+            {/* Price Range */}
             <View style={{ flexDirection: 'row' }}>
               <View style={{ flex: 1, marginRight: 6 }}>
                 <Text style={{ fontFamily: 'Lato_500Medium', marginBottom: 6 }}>
